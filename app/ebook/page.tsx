@@ -40,7 +40,7 @@ export default function EbookPage() {
         } else {
           router.push('/login');
         }
-      } catch (err) {
+      } catch {
         router.push('/login');
       } finally {
         setLoading(false);

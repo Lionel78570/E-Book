@@ -26,7 +26,7 @@ export default function LoginPage() {
       } else {
         setStatus('error');
       }
-    } catch (err) {
+    } catch {
       setStatus('error');
     }
   };

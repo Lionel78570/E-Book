@@ -26,7 +26,7 @@ export default function SignupPage() {
       } else {
         setStatus('error');
       }
-    } catch (err) {
+    } catch {
       setStatus('error');
     }
   };
