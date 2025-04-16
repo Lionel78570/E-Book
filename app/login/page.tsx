@@ -4,7 +4,9 @@ import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [status, setStatus] = useState<'idle' | 'checking' | 'error'>('idle');
+  const [isAdmin, setIsAdmin] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -15,19 +17,36 @@ export default function LoginPage() {
       const res = await fetch('/api/verify-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, password: isAdmin ? password : undefined }),
       });
 
       const data = await res.json();
 
       if (data.authorized) {
         localStorage.setItem('userEmail', email);
-        router.push('/ebook');
+        if (data.admin) {
+          localStorage.setItem('isAdmin', 'true');
+          router.push('/admin');
+        } else {
+          localStorage.removeItem('isAdmin');
+          router.push('/ebook');
+        }
       } else {
         setStatus('error');
+        console.log('Access denied: email or password incorrect.');
       }
     } catch {
       setStatus('error');
+    }
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+    if (newEmail === 'admin@ebook.com') {
+      setIsAdmin(true);
+    } else {
+      setIsAdmin(false);
     }
   };
 
@@ -44,10 +63,22 @@ export default function LoginPage() {
           name="email"
           placeholder="Ton email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={handleEmailChange}
           required
           className="w-full mb-4 px-4 py-2 border rounded-lg dark:bg-gray-900 dark:border-gray-700"
         />
+
+        {isAdmin && (
+          <input
+            type="password"
+            name="password"
+            placeholder="Mot de passe"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="w-full mb-4 px-4 py-2 border rounded-lg dark:bg-gray-900 dark:border-gray-700"
+          />
+        )}
 
         <button
           type="submit"
@@ -58,7 +89,7 @@ export default function LoginPage() {
         </button>
 
         {status === 'error' && (
-          <p className="mt-4 text-red-600 text-center">Accès refusé. Email non autorisé.</p>
+          <p className="mt-4 text-red-600 text-center">Accès refusé. Email ou mot de passe incorrect.</p>
         )}
       </form>
     </div>
