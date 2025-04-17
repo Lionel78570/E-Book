@@ -2,20 +2,24 @@ import { NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
 
-export async function POST(req: Request) {
-  const { email } = await req.json();
+type User = {
+  email: string;
+};
 
-  console.log('📨 Reçu pour acceptation :', email); // log reçu
+export async function POST(req: Request) {
+  const { email }: { email: string } = await req.json();  // Ajout de type pour email
+
+  console.log('📨 Reçu pour acceptation :', email);
 
   const USERS_PATH = path.join(process.cwd(), 'data', 'users.json');
   const PENDING_PATH = path.join(process.cwd(), 'data', 'pending.json');
 
-  const users = JSON.parse(await fs.readFile(USERS_PATH, 'utf-8').catch(() => {
+  const users: string[] = JSON.parse(await fs.readFile(USERS_PATH, 'utf-8').catch(() => {
     console.warn('⚠️ users.json introuvable, initialisation vide.');
     return '[]';
   }));
 
-  const pending = JSON.parse(await fs.readFile(PENDING_PATH, 'utf-8').catch(() => {
+  const pending: { email: string }[] = JSON.parse(await fs.readFile(PENDING_PATH, 'utf-8').catch(() => {
     console.warn('⚠️ pending.json introuvable, initialisation vide.');
     return '[]';
   }));
@@ -27,7 +31,7 @@ export async function POST(req: Request) {
     console.log('ℹ️ Email déjà présent dans users.json');
   }
 
-  const updatedPending = pending.filter((entry: any) => entry.email !== email);
+  const updatedPending = pending.filter((entry) => entry.email !== email);
   console.log('🧹 Entrée supprimée de pending.json');
 
   await fs.writeFile(USERS_PATH, JSON.stringify(users, null, 2));

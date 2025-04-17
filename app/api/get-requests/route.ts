@@ -2,6 +2,13 @@ import { NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
 
+type PendingUser = {
+  email: string;
+  name?: string;  // Si d'autres propriétés existent, tu peux les ajouter ici
+  message?: string;
+  date?: string;
+};
+
 export async function GET() {
   const filePath = path.join(process.cwd(), 'data', 'pending.json');
 
@@ -12,7 +19,7 @@ export async function GET() {
     return '[]';
   });
 
-  const parsed = JSON.parse(data);
+  const parsed: PendingUser[] = JSON.parse(data); // Typage des données récupérées
 
   console.log('📄 Données récupérées :', parsed); // <-- log contenu
 

@@ -1,37 +1,49 @@
-import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs/promises';
-import path from 'path';
+import { NextResponse } from "next/server";
+import fs from "fs/promises";
+import path from "path";
 
-const DATA_DIR = path.join(process.cwd(), 'data');
-const PENDING_PATH = path.join(DATA_DIR, 'pending.json');
-const USERS_PATH = path.join(DATA_DIR, 'users.json');
+const pendingPath = path.join(process.cwd(), "data", "pending.json");
+const usersPath = path.join(process.cwd(), "data", "users.json");
+const historyPath = path.join(process.cwd(), "data", "history.json");
+
+type User = {
+  name: string;
+  email: string;
+  message: string;
+  date: string;
+};
 
 export async function GET() {
-  try {
-    const data = await fs.readFile(PENDING_PATH, 'utf-8');
-    return NextResponse.json(JSON.parse(data));
-  } catch {
-    return NextResponse.json([]);
-  }
+  const data = await fs.readFile(pendingPath, "utf-8");
+  const users: User[] = JSON.parse(data);
+  return NextResponse.json(users);
 }
 
-export async function POST(req: NextRequest) {
-  const { email, action } = await req.json();
+export async function POST(req: Request) {
+  const { email, action }: { email: string; action: "accept" | "reject" } = await req.json();
 
-  const pending = JSON.parse(await fs.readFile(PENDING_PATH, 'utf-8').catch(() => '[]'));
-  const users = JSON.parse(await fs.readFile(USERS_PATH, 'utf-8').catch(() => '[]'));
+  const pendingRaw = await fs.readFile(pendingPath, "utf-8");
+  const pending: User[] = JSON.parse(pendingRaw);
+  const user = pending.find((u) => u.email === email);
 
-  const user = pending.find((u: any) => u.email === email);
-  if (!user) return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
-
-  const updatedPending = pending.filter((u: any) => u.email !== email);
-
-  if (action === 'accept') {
-    users.push({ ...user, status: 'accepted' });
-    await fs.writeFile(USERS_PATH, JSON.stringify(users, null, 2));
+  if (!user) {
+    return NextResponse.json({ success: false, message: "Utilisateur non trouvé." });
   }
 
-  await fs.writeFile(PENDING_PATH, JSON.stringify(updatedPending, null, 2));
+  const newPending = pending.filter((u) => u.email !== email);
+  await fs.writeFile(pendingPath, JSON.stringify(newPending, null, 2));
+
+  if (action === "accept") {
+    const usersRaw = await fs.readFile(usersPath, "utf-8");
+    const usersList: User[] = JSON.parse(usersRaw);
+    usersList.push({ ...user });
+    await fs.writeFile(usersPath, JSON.stringify(usersList, null, 2));
+  }
+
+  const historyRaw = await fs.readFile(historyPath, "utf-8");
+  const history: (User & { status: "accepted" | "rejected" })[] = JSON.parse(historyRaw);
+  history.unshift({ ...user, status: action === "accept" ? "accepted" : "rejected" });
+  await fs.writeFile(historyPath, JSON.stringify(history, null, 2));
 
   return NextResponse.json({ success: true });
 }
