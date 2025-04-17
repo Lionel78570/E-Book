@@ -23,7 +23,7 @@ export default function Home() {
               Transforme ton réseau en business.
             </h1>
             <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300">
-              Accède à des contacts exclusifs de fournisseurs (Apple, puffs, textile...) et à un guide pas à pas pour lancer ton business en ligne. Testé, concret, et surtout… efficace.
+              Accède à des contacts exclusifs de fournisseurs (produits éléctroniques, textile...) et à un guide pas à pas pour lancer ton business en ligne. Testé, concret, et surtout… efficace.
             </p>
             <p className="text-sm sm:text-base font-semibold text-[#ff6600] dark:text-orange-300">
               Accès privé. Réservé aux motivés.
