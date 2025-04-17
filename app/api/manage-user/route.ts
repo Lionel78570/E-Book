@@ -1,47 +1,46 @@
-import { NextResponse } from 'next/server';
-import fs from 'fs/promises';
-import path from 'path';
+import { NextResponse } from "next/server";
+import { promises as fs } from "fs";
+import path from "path";
 
-type PendingEntry = {
-  email: string;
-};
+const pendingPath = path.join(process.cwd(), "data/pending.json");
+const historyPath = path.join(process.cwd(), "data/history.json");
 
-type ResponseData = { success: boolean; message?: string }; // Type pour la réponse JSON
+export async function GET() {
+  try {
+    const data = await fs.readFile(pendingPath, "utf-8").catch(() => "[]");
+    const users = JSON.parse(data);
+    return NextResponse.json(users);
+  } catch (error) {
+    console.error("❌ Error reading pending.json:", error);
+    return NextResponse.json([], { status: 200 });
+  }
+}
 
 export async function POST(req: Request) {
-  const { email }: { email: string } = await req.json();
-  console.log('📨 Reçu pour acceptation :', email);
-
-  const USERS_PATH = path.join(process.cwd(), 'data', 'users.json');
-  const PENDING_PATH = path.join(process.cwd(), 'data', 'pending.json');
-
   try {
-    const users: string[] = JSON.parse(await fs.readFile(USERS_PATH, 'utf-8').catch((err) => {
-      console.error('Erreur de lecture de users.json:', err);
-      return '[]';
-    })) as string[];
+    const { email, action } = await req.json();
+    const pendingRaw = await fs.readFile(pendingPath, "utf-8").catch(() => "[]");
+    const historyRaw = await fs.readFile(historyPath, "utf-8").catch(() => "[]");
 
-    const pending: PendingEntry[] = JSON.parse(await fs.readFile(PENDING_PATH, 'utf-8').catch((err) => {
-      console.error('Erreur de lecture de pending.json:', err);
-      return '[]';
-    })) as PendingEntry[];
+    const pending = JSON.parse(pendingRaw);
+    const history = JSON.parse(historyRaw);
 
-    if (!users.includes(email)) {
-      users.push(email);
-      console.log('✅ Email ajouté à users.json');
-    } else {
-      console.log('ℹ️ Email déjà présent dans users.json');
+    const userIndex = pending.findIndex((u: any) => u.email === email);
+    if (userIndex === -1) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const updatedPending = pending.filter((entry) => entry.email !== email);
-    console.log('🧹 Entrée supprimée de pending.json');
+    const [user] = pending.splice(userIndex, 1);
+    user.status = action === "accept" ? "accepted" : "rejected";
 
-    await fs.writeFile(USERS_PATH, JSON.stringify(users, null, 2));
-    await fs.writeFile(PENDING_PATH, JSON.stringify(updatedPending, null, 2));
+    history.unshift(user);
+
+    await fs.writeFile(pendingPath, JSON.stringify(pending, null, 2));
+    await fs.writeFile(historyPath, JSON.stringify(history, null, 2));
 
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error('Erreur lors du traitement de la requête :', err);
-    return NextResponse.json({ success: false, message: 'Une erreur est survenue.' } as ResponseData);
+    console.error("❌ POST /api/manage-user failed:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
