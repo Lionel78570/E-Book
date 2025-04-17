@@ -1,49 +1,41 @@
-import { NextResponse } from "next/server";
-import fs from "fs/promises";
-import path from "path";
+import { NextResponse } from 'next/server';
+import fs from 'fs/promises';
+import path from 'path';
 
-const pendingPath = path.join(process.cwd(), "data", "pending.json");
-const usersPath = path.join(process.cwd(), "data", "users.json");
-const historyPath = path.join(process.cwd(), "data", "history.json");
-
-type User = {
-  name: string;
+type PendingEntry = {
   email: string;
-  message: string;
-  date: string;
 };
 
-export async function GET() {
-  const data = await fs.readFile(pendingPath, "utf-8");
-  const users: User[] = JSON.parse(data);
-  return NextResponse.json(users);
-}
-
 export async function POST(req: Request) {
-  const { email, action }: { email: string; action: "accept" | "reject" } = await req.json();
+  const { email }: { email: string } = await req.json();
 
-  const pendingRaw = await fs.readFile(pendingPath, "utf-8");
-  const pending: User[] = JSON.parse(pendingRaw);
-  const user = pending.find((u) => u.email === email);
+  console.log('📨 Reçu pour acceptation :', email);
 
-  if (!user) {
-    return NextResponse.json({ success: false, message: "Utilisateur non trouvé." });
+  const USERS_PATH = path.join(process.cwd(), 'data', 'users.json');
+  const PENDING_PATH = path.join(process.cwd(), 'data', 'pending.json');
+
+  const users: string[] = JSON.parse(await fs.readFile(USERS_PATH, 'utf-8').catch(() => {
+    console.warn('⚠️ users.json introuvable, initialisation vide.');
+    return '[]';
+  }));
+
+  const pending: PendingEntry[] = JSON.parse(await fs.readFile(PENDING_PATH, 'utf-8').catch(() => {
+    console.warn('⚠️ pending.json introuvable, initialisation vide.');
+    return '[]';
+  }));
+
+  if (!users.includes(email)) {
+    users.push(email);
+    console.log('✅ Email ajouté à users.json');
+  } else {
+    console.log('ℹ️ Email déjà présent dans users.json');
   }
 
-  const newPending = pending.filter((u) => u.email !== email);
-  await fs.writeFile(pendingPath, JSON.stringify(newPending, null, 2));
+  const updatedPending = pending.filter((entry) => entry.email !== email);
+  console.log('🧹 Entrée supprimée de pending.json');
 
-  if (action === "accept") {
-    const usersRaw = await fs.readFile(usersPath, "utf-8");
-    const usersList: User[] = JSON.parse(usersRaw);
-    usersList.push({ ...user });
-    await fs.writeFile(usersPath, JSON.stringify(usersList, null, 2));
-  }
-
-  const historyRaw = await fs.readFile(historyPath, "utf-8");
-  const history: (User & { status: "accepted" | "rejected" })[] = JSON.parse(historyRaw);
-  history.unshift({ ...user, status: action === "accept" ? "accepted" : "rejected" });
-  await fs.writeFile(historyPath, JSON.stringify(history, null, 2));
+  await fs.writeFile(USERS_PATH, JSON.stringify(users, null, 2));
+  await fs.writeFile(PENDING_PATH, JSON.stringify(updatedPending, null, 2));
 
   return NextResponse.json({ success: true });
 }

@@ -48,7 +48,7 @@ export default function EbookPage() {
     };
 
     checkAuth();
-  }, []);
+  }, [router]);
 
   const handleLogout = () => {
     localStorage.removeItem('userEmail');
