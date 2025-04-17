@@ -17,13 +17,13 @@ export default function Header() {
             height={40}
             className="rounded-full"
           /> */}
-          <a href="../app/page.tsx">
+          <a href="./">
             <span className="font-bold text-lg text-black dark:text-white">Ebook Business</span>
           </a>
         </div>
 
         <nav className="hidden sm:flex items-center gap-6 text-sm font-medium text-gray-700 dark:text-gray-300">
-          <a href="../app/page.tsx" className="hover:text-black dark:hover:text-white">Accueil</a>
+          <a href="./" className="hover:text-black dark:hover:text-white">Accueil</a>
           <a href="#contenu" className="hover:text-black dark:hover:text-white">Accès privé</a>
           <a
             href="/login"
@@ -44,7 +44,7 @@ export default function Header() {
 
       {isOpen && (
         <div className="sm:hidden mt-4 flex flex-col gap-4 text-sm font-medium text-gray-700 dark:text-gray-300 px-2">
-          <a href="../app/page.tsx" onClick={() => setIsOpen(false)} className="hover:text-black dark:hover:text-white">Accueil</a>
+          <a href="./" onClick={() => setIsOpen(false)} className="hover:text-black dark:hover:text-white">Accueil</a>
           <a href="#contenu" onClick={() => setIsOpen(false)} className="hover:text-black dark:hover:text-white">Accès privé</a>
           <a
             href="/login"
