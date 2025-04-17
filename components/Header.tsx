@@ -17,7 +17,9 @@ export default function Header() {
             height={40}
             className="rounded-full"
           /> */}
-          <span className="font-bold text-lg text-black dark:text-white">Ebook Business</span>
+          <a href="../app/page.tsx">
+            <span className="font-bold text-lg text-black dark:text-white">Ebook Business</span>
+          </a>
         </div>
 
         <nav className="hidden sm:flex items-center gap-6 text-sm font-medium text-gray-700 dark:text-gray-300">
