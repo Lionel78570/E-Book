@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Header from '@/components/Header';
+
 
 export default function EbookPage() {
   const [authorized, setAuthorized] = useState(false);
@@ -66,38 +68,41 @@ export default function EbookPage() {
   if (!authorized) return null;
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 sm:px-6">
-      <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 shadow-md rounded-lg p-8 w-full max-w-2xl">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">📚 Tes E-books</h1>
-          <button
-            onClick={handleLogout}
-            className="text-sm text-red-600 hover:underline"
-          >
-            Se déconnecter
-          </button>
+    <>
+      <Header />
+      <div className="min-h-screen flex items-center justify-center px-4 sm:px-6">
+        <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 shadow-md rounded-lg p-8 w-full max-w-2xl">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold">📚 Tes E-books</h1>
+            <button
+              onClick={handleLogout}
+              className="text-sm text-red-600 hover:underline"
+            >
+              Se déconnecter
+            </button>
+          </div>
+
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+            Connecté avec : <span className="font-medium">{email}</span>
+          </p>
+
+          <ul className="space-y-4">
+            {ebookFiles.map((ebook, index) => (
+              <li key={index}>
+                <a
+                  href={`/ebooks/${ebook.file}`}
+                  download
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 px-4 py-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+                >
+                  📥 {ebook.name}
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
-
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-          Connecté avec : <span className="font-medium">{email}</span>
-        </p>
-
-        <ul className="space-y-4">
-          {ebookFiles.map((ebook, index) => (
-            <li key={index}>
-              <a
-                href={`/ebooks/${ebook.file}`}
-                download
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 px-4 py-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition"
-              >
-                📥 {ebook.name}
-              </a>
-            </li>
-          ))}
-        </ul>
       </div>
-    </div>
+    </>
   );
 }
