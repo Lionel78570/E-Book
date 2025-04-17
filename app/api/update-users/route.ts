@@ -15,38 +15,50 @@ type User = {
 
 type HistoryUser = User & { status: "accepted" | "rejected" };
 
+type ResponseData = { success: boolean; message?: string }; // Type pour la réponse JSON
+
 export async function GET() {
-  const data = await fs.readFile(pendingPath, "utf-8");
-  const users: User[] = JSON.parse(data);
-  return NextResponse.json(users);
+  try {
+    const data = await fs.readFile(pendingPath, "utf-8");
+    const users: User[] = JSON.parse(data);
+    return NextResponse.json(users);
+  } catch (err) {
+    console.error('Erreur lors de la lecture des utilisateurs de pending.json:', err);
+    return NextResponse.json({ success: false, message: 'Erreur lors de la lecture des utilisateurs.' } as ResponseData);
+  }
 }
 
 export async function POST(req: Request) {
   const { email, action }: { email: string; action: "accept" | "reject" } = await req.json();
 
-  const pendingRaw = await fs.readFile(pendingPath, "utf-8");
-  const pending: User[] = JSON.parse(pendingRaw);
-  const user = pending.find((u) => u.email === email);
+  try {
+    const pendingRaw = await fs.readFile(pendingPath, "utf-8");
+    const pending: User[] = JSON.parse(pendingRaw);
+    const user = pending.find((u) => u.email === email);
 
-  if (!user) {
-    return NextResponse.json({ success: false, message: "Utilisateur non trouvé." });
+    if (!user) {
+      return NextResponse.json({ success: false, message: "Utilisateur non trouvé." } as ResponseData);
+    }
+
+    const newPending: User[] = pending.filter((u) => u.email !== email);
+    await fs.writeFile(pendingPath, JSON.stringify(newPending, null, 2));
+
+    if (action === "accept") {
+      const usersRaw = await fs.readFile(usersPath, "utf-8");
+      const usersList: User[] = JSON.parse(usersRaw);
+      usersList.push(user);
+      await fs.writeFile(usersPath, JSON.stringify(usersList, null, 2));
+    }
+
+    const historyRaw = await fs.readFile(historyPath, "utf-8").catch(() => '[]');
+    const history: HistoryUser[] = JSON.parse(historyRaw);
+    history.unshift({ ...user, status: action === "accept" ? "accepted" : "rejected" });
+
+    await fs.writeFile(historyPath, JSON.stringify(history, null, 2));
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error('Erreur lors du traitement de la requête POST:', err);
+    return NextResponse.json({ success: false, message: 'Une erreur est survenue.' } as ResponseData);
   }
-
-  const newPending: User[] = pending.filter((u) => u.email !== email);
-  await fs.writeFile(pendingPath, JSON.stringify(newPending, null, 2));
-
-  if (action === "accept") {
-    const usersRaw = await fs.readFile(usersPath, "utf-8");
-    const usersList: User[] = JSON.parse(usersRaw);
-    usersList.push(user);
-    await fs.writeFile(usersPath, JSON.stringify(usersList, null, 2));
-  }
-
-  const historyRaw = await fs.readFile(historyPath, "utf-8").catch(() => '[]');
-  const history: HistoryUser[] = JSON.parse(historyRaw);
-  history.unshift({ ...user, status: action === "accept" ? "accepted" : "rejected" });
-
-  await fs.writeFile(historyPath, JSON.stringify(history, null, 2));
-
-  return NextResponse.json({ success: true });
 }
