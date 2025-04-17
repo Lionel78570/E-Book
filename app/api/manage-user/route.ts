@@ -19,12 +19,12 @@ export async function POST(req: Request) {
     const users: string[] = JSON.parse(await fs.readFile(USERS_PATH, 'utf-8').catch((err) => {
       console.error('Erreur de lecture de users.json:', err);
       return '[]';
-    }));
+    })) as string[];
 
     const pending: PendingEntry[] = JSON.parse(await fs.readFile(PENDING_PATH, 'utf-8').catch((err) => {
       console.error('Erreur de lecture de pending.json:', err);
       return '[]';
-    }));
+    })) as PendingEntry[];
 
     if (!users.includes(email)) {
       users.push(email);

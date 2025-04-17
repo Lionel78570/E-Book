@@ -17,8 +17,8 @@ export async function POST(req: Request) {
     const pending: PendingUser[] = JSON.parse(await fs.readFile(PENDING_PATH, 'utf-8').catch((err) => {
       console.error('Erreur de lecture de pending.json:', err);
       return '[]';
-    }));
-
+    })) as PendingUser[];
+    
     const updated: PendingUser[] = pending.filter((entry) => entry.email !== email);
     await fs.writeFile(PENDING_PATH, JSON.stringify(updated, null, 2));
 

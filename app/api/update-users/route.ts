@@ -33,7 +33,7 @@ export async function POST(req: Request) {
 
   try {
     const pendingRaw = await fs.readFile(pendingPath, "utf-8");
-    const pending: User[] = JSON.parse(pendingRaw);
+    const pending: User[] = JSON.parse(pendingRaw) as User[];
     const user = pending.find((u) => u.email === email);
 
     if (!user) {
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
     }
 
     const historyRaw = await fs.readFile(historyPath, "utf-8").catch(() => '[]');
-    const history: HistoryUser[] = JSON.parse(historyRaw);
+    const history: HistoryUser[] = JSON.parse(historyRaw) as HistoryUser[];
     history.unshift({ ...user, status: action === "accept" ? "accepted" : "rejected" });
 
     await fs.writeFile(historyPath, JSON.stringify(history, null, 2));
