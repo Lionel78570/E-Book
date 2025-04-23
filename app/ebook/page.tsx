@@ -1,14 +1,11 @@
 'use client';
 
-// Renommer `dynamic` pour éviter le conflit avec l'importation de next/dynamic
-export const forceDynamic = 'force-dynamic';  // ← Renommer cette constante
-
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 
-// Importation de dynamic sous un alias `dyn`
-import dyn from 'next/dynamic';  // ← Renommer l'importation ici
+// Utilisation correcte de `dynamic` pour les composants
+import dyn from 'next/dynamic';  // Importation de dynamic sous un alias `dyn`
 const PdfViewer = dyn(() => import('@/components/PdfViewer'), { ssr: false });  // Charger côté client uniquement
 
 export default function EbookPage() {
@@ -80,3 +77,6 @@ export default function EbookPage() {
     </>
   );
 }
+
+// Si besoin, tu peux utiliser `dynamic` de manière spécifique sur certains composants
+// export const dynamic = 'force-dynamic'; // Supprimé ici, et pas nécessaire pour la page
