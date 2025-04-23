@@ -1,28 +1,39 @@
-import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs/promises';
+// app/api/ebooks/[slug]/route.ts
+import { cookies } from 'next/headers';
 import path from 'path';
+import fs from 'fs/promises';
+import users from '@/data/users.json';
 
-export async function GET(req: NextRequest, { params }: { params: { slug: string } }) {
-  // Vérifier que l'utilisateur est authentifié
-  const email = req.cookies.get('user_email')?.value;
-  if (!email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+interface User {
+  email: string;
+  status: 'accepted' | 'pending';
+}
 
-  // Chemin d'accès au fichier PDF
-  const filePath = path.join(process.cwd(), 'privates', 'ebooks', params.slug);
+export async function GET(
+  req: Request,
+  context: { params: { slug: string } }   // ✅ RouteContext
+) {
+  /* ---------- auth ---------- */
+  const email = (await cookies()).get('user_email')?.value;
+  if (!email) return new Response('Unauthorized', { status: 401 });
+
+  const user = (users as User[]).find(
+    (u) => u.email === email && u.status === 'accepted'
+  );
+  if (!user) return new Response('Forbidden', { status: 403 });
+
+  /* ---------- fichier ---------- */
+  const filePath = path.join(process.cwd(), 'privates', 'ebooks', context.params.slug);
 
   try {
-    // Lire le fichier PDF
-    const fileBuffer = await fs.readFile(filePath);
-
-    // Retourner le fichier PDF en réponse
-    return new NextResponse(fileBuffer, {
+    const file = await fs.readFile(filePath);
+    return new Response(file, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': 'inline',  // Afficher le PDF directement dans le navigateur
+        'Content-Disposition': `inline; filename="${context.params.slug}"`,
       },
     });
-  } catch (error) {
-    console.error('Erreur de lecture du fichier PDF:', error);
-    return new NextResponse('Fichier non trouvé', { status: 404 });
+  } catch {
+    return new Response('File not found', { status: 404 });
   }
 }
