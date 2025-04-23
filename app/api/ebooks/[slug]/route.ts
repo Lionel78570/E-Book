@@ -1,9 +1,8 @@
-// app/api/ebooks/[slug]/route.ts
 import { NextRequest } from 'next/server';
-import { cookies }   from 'next/headers';
-import path          from 'path';
-import fs            from 'fs/promises';
-import users         from '@/data/users.json';
+import { cookies }     from 'next/headers';
+import path            from 'path';
+import fs              from 'fs/promises';
+import users           from '@/data/users.json';
 
 interface User {
   email: string;
@@ -11,27 +10,23 @@ interface User {
 }
 
 export async function GET(
-  req: NextRequest,                       // ✅ type correct
-  { params }: { params: { slug: string } } // ou simplement (_, { params })
+  req: NextRequest,
+  context: { params: Record<string, string> }   // ← typage ultra‑large
 ) {
-  /* ---------- auth ---------- */
   const email = (await cookies()).get('user_email')?.value;
   if (!email) return new Response('Unauthorized', { status: 401 });
 
-  const user = (users as User[]).find(
-    (u) => u.email === email && u.status === 'accepted'
-  );
-  if (!user) return new Response('Forbidden', { status: 403 });
+  const ok = (users as User[]).some(u => u.email === email && u.status === 'accepted');
+  if (!ok) return new Response('Forbidden', { status: 403 });
 
-  /* ---------- fichier ---------- */
-  const filePath = path.join(process.cwd(), 'privates', 'ebooks', params.slug);
+  const filePath = path.join(process.cwd(), 'privates', 'ebooks', context.params.slug);
 
   try {
     const file = await fs.readFile(filePath);
     return new Response(file, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `inline; filename="${params.slug}"`,
+        'Content-Disposition': `inline; filename="${context.params.slug}"`,
       },
     });
   } catch {
