@@ -1,8 +1,9 @@
 // app/api/ebooks/[slug]/route.ts
-import { cookies } from 'next/headers';
-import path from 'path';
-import fs from 'fs/promises';
-import users from '@/data/users.json';
+import { NextRequest } from 'next/server';
+import { cookies }   from 'next/headers';
+import path          from 'path';
+import fs            from 'fs/promises';
+import users         from '@/data/users.json';
 
 interface User {
   email: string;
@@ -10,8 +11,8 @@ interface User {
 }
 
 export async function GET(
-  req: Request,
-  context: { params: { slug: string } }   // ✅ RouteContext
+  req: NextRequest,                       // ✅ type correct
+  { params }: { params: { slug: string } } // ou simplement (_, { params })
 ) {
   /* ---------- auth ---------- */
   const email = (await cookies()).get('user_email')?.value;
@@ -23,14 +24,14 @@ export async function GET(
   if (!user) return new Response('Forbidden', { status: 403 });
 
   /* ---------- fichier ---------- */
-  const filePath = path.join(process.cwd(), 'privates', 'ebooks', context.params.slug);
+  const filePath = path.join(process.cwd(), 'privates', 'ebooks', params.slug);
 
   try {
     const file = await fs.readFile(filePath);
     return new Response(file, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `inline; filename="${context.params.slug}"`,
+        'Content-Disposition': `inline; filename="${params.slug}"`,
       },
     });
   } catch {
