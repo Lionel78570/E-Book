@@ -53,7 +53,7 @@ export default function EbookPage() {
       <Header />
       <div className="min-h-screen flex items-center justify-center px-4 sm:px-6">
         <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 shadow-md rounded-lg p-8 w-full max-w-3xl">
-          <h1 className="text-2xl font-bold mb-4">📚 Tes E‑books</h1>
+          <h1 className="text-2xl font-bold mb-4">📚 Tes E‑books</h1>
           <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
             Connecté avec : <span className="font-medium">{email}</span>
           </p>
@@ -63,7 +63,7 @@ export default function EbookPage() {
               <li key={file}>
                 <details className="group border rounded-lg p-4">
                   <summary className="cursor-pointer text-blue-600 dark:text-blue-400 font-medium text-lg">
-                    📖 {name}
+                    📖 {name}
                   </summary>
 
                   {/* Utilisation du composant PdfViewer pour afficher le PDF */}
@@ -77,6 +77,3 @@ export default function EbookPage() {
     </>
   );
 }
-
-// Si besoin, tu peux utiliser `dynamic` de manière spécifique sur certains composants
-// export const dynamic = 'force-dynamic'; // Supprimé ici, et pas nécessaire pour la page
