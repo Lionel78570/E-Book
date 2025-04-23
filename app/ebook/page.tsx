@@ -1,10 +1,15 @@
 'use client';
-export const dynamic = 'force-dynamic';   // ← empêche toute pré‑rendu
+
+// Renommer `dynamic` pour éviter le conflit avec l'importation de next/dynamic
+export const forceDynamic = 'force-dynamic';  // ← Renommer cette constante
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
-import PdfViewer from '@/components/PdfViewer';  // Composant PdfViewer renommé ici
+
+// Importation de dynamic sous un alias `dyn`
+import dyn from 'next/dynamic';  // ← Renommer l'importation ici
+const PdfViewer = dyn(() => import('@/components/PdfViewer'), { ssr: false });  // Charger côté client uniquement
 
 export default function EbookPage() {
   const [authorized, setAuthorized] = useState(false);
