@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "name": "lionel",
+    "email": "carmelo@gmail.com",
+    "message": "lololol",
+    "date": "2025-04-18T13:25:16.854Z",
+    "status": "accepted"
+  },
+  {
+    "name": "lionel",
+    "email": "lionelwebdev@gmail.com",
+    "message": "Lionel le sang",
+    "date": "2025-04-18T12:40:36.008Z",
+    "status": "accepted"
+  }
+]

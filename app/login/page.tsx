@@ -24,12 +24,9 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (data.authorized) {
-        localStorage.setItem('userEmail', email);
         if (data.admin) {
-          localStorage.setItem('isAdmin', 'true');
           router.push('/admin');
         } else {
-          localStorage.removeItem('isAdmin');
           router.push('/ebook');
         }
       } else {
@@ -44,11 +41,7 @@ export default function LoginPage() {
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newEmail = e.target.value;
     setEmail(newEmail);
-    if (newEmail === 'admin@ebook.com') {
-      setIsAdmin(true);
-    } else {
-      setIsAdmin(false);
-    }
+    setIsAdmin(newEmail === 'admin@ebook.com');
   };
 
   return (
@@ -92,7 +85,9 @@ export default function LoginPage() {
           </button>
 
           {status === 'error' && (
-            <p className="mt-4 text-red-600 text-center">Accès refusé. Email ou mot de passe incorrect.</p>
+            <p className="mt-4 text-red-600 text-center">
+              Accès refusé. Email ou mot de passe incorrect.
+            </p>
           )}
         </form>
       </div>

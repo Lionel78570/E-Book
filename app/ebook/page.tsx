@@ -1,69 +1,47 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
-
+import PdfViewer from '@/components/PdfViewer';  // Composant PdfViewer renommé ici
 
 export default function EbookPage() {
   const [authorized, setAuthorized] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState('');
   const router = useRouter();
 
   const ebookFiles = [
-    { name: 'Ebook complet', file: '1.EBOOK COMPLET .pdf' },
-    { name: 'Astuces', file: 'EBOOK - ASTUCES.pdf' },
-    { name: 'Création', file: 'EBOOK - CRÉATION.pdf' },
-    { name: 'Fournisseurs', file: 'EBOOK - FOURNISSEURS.pdf' },
-    { name: 'Motivation', file: 'EBOOK - MOTIVATION.pdf' },
+    { name: 'Ebook complet', file: 'ebook-complet.pdf' },
+    { name: 'Astuces', file: 'ebook-astuces.pdf' },
+    { name: 'Création', file: 'ebook-creation.pdf' },
+    { name: 'Fournisseurs', file: 'ebook-fournisseur.pdf' },
+    { name: 'Motivation', file: 'ebook-motivation.pdf' },
   ];
 
+  // Vérification de l'accès via cookie
   useEffect(() => {
-    const checkAuth = async () => {
-      const savedEmail = localStorage.getItem('userEmail');
-      if (!savedEmail) {
-        router.push('/login');
-        return;
-      }
-
-      setEmail(savedEmail);
-
-      try {
-        const res = await fetch('/api/verify-user', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: savedEmail }),
-        });
-
-        const data = await res.json();
-
-        if (data.authorized) {
+    fetch('/api/verify-access')
+      .then((r) => r.json())
+      .then((d: { authorized: boolean; email?: string }) => {
+        if (d.authorized) {
           setAuthorized(true);
+          setEmail(d.email ?? '');
         } else {
           router.push('/login');
         }
-      } catch {
-        router.push('/login');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAuth();
+      })
+      .catch(() => router.push('/login'));
   }, [router]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('userEmail');
-    router.push('/login');
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-center">
-        <p className="text-gray-600 dark:text-gray-300">Chargement...</p>
-      </div>
-    );
-  }
+  // Blocage des raccourcis clavier
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && ['s', 'p', 'u'].includes(e.key.toLowerCase()))
+        e.preventDefault();
+    };
+    document.addEventListener('keydown', h);
+    return () => document.removeEventListener('keydown', h);
+  }, []);
 
   if (!authorized) return null;
 
@@ -71,33 +49,23 @@ export default function EbookPage() {
     <>
       <Header />
       <div className="min-h-screen flex items-center justify-center px-4 sm:px-6">
-        <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 shadow-md rounded-lg p-8 w-full max-w-2xl">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold">📚 Tes E-books</h1>
-            <button
-              onClick={handleLogout}
-              className="text-sm text-red-600 hover:underline"
-            >
-              Se déconnecter
-            </button>
-          </div>
-
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+        <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 shadow-md rounded-lg p-8 w-full max-w-3xl">
+          <h1 className="text-2xl font-bold mb-4">📚 Tes E‑books</h1>
+          <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
             Connecté avec : <span className="font-medium">{email}</span>
           </p>
 
-          <ul className="space-y-4">
-            {ebookFiles.map((ebook, index) => (
-              <li key={index}>
-                <a
-                  href={`/ebooks/${ebook.file}`}
-                  download
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 px-4 py-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition"
-                >
-                  📥 {ebook.name}
-                </a>
+          <ul className="space-y-8">
+            {ebookFiles.map(({ name, file }) => (
+              <li key={file}>
+                <details className="group border rounded-lg p-4">
+                  <summary className="cursor-pointer text-blue-600 dark:text-blue-400 font-medium text-lg">
+                    📖 {name}
+                  </summary>
+
+                  {/* Utilisation du composant PdfViewer pour afficher le PDF */}
+                  <PdfViewer file={file} />
+                </details>
               </li>
             ))}
           </ul>
