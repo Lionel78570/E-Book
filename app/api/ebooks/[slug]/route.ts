@@ -1,3 +1,4 @@
+// app/api/ebooks/[slug]/route.ts
 import { NextRequest } from 'next/server';
 import { cookies }     from 'next/headers';
 import path            from 'path';
@@ -9,9 +10,10 @@ interface User {
   status: 'accepted' | 'pending';
 }
 
+// on laisse Next déduire le type du 2ᵉ paramètre
 export async function GET(
   req: NextRequest,
-  context: { params: Record<string, string> }   // ← typage ultra‑large
+  context: { params: any }   // ← uniquement `any` *dans* la propriété, pas sur l’argument
 ) {
   const email = (await cookies()).get('user_email')?.value;
   if (!email) return new Response('Unauthorized', { status: 401 });
